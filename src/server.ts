@@ -30,16 +30,24 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
 
   /**************************************************************************** */
   app.get('/filteredimage',async (req: Request, res: Response) =>{
-    const image_url =req.query.image_url.toString();
-    if(!image_url){
-      res.status(400).send('Image url is required');
+    //them verify url vaf can them try catch
+    const validUrl = require('valid-url');
+    const image_url =req.query.image_url;
+    try {
+      if(validUrl.isUri(image_url)){
+        const filtred_image =await filterImageFromURL(image_url);
+  
+        res.status(200).sendFile(filtred_image, ()=> {
+          deleteLocalFiles([filtred_image]);
+        });
+      }
+      else {
+        res.status(400).send('Image url is required');
+      }
+    }catch(e){
+      res.status(400).send('The url is not accessible');
     }
-
-    const filtred_image =await filterImageFromURL(image_url);
-
-    res.status(200).sendFile(filtred_image, ()=> {
-      deleteLocalFiles([filtred_image]);
-    });
+    
   });
   //! END @TODO1
   
